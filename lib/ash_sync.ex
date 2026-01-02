@@ -171,7 +171,7 @@ defmodule AshSync do
           "update" -> :on_update
         end
 
-      Enum.find_value(sync_data, fn %{resource: resource, queries: queries} = sync ->
+      Enum.find_value(sync_data, fn %{resource: resource, queries: queries} = _sync ->
         query =
           Enum.find(queries, fn query ->
             if to_string(query.name) == mutation["query"] do
@@ -191,13 +191,12 @@ defmodule AshSync do
         nil ->
           {:halt, {:error, "not found"}}
 
-        {resource, action, mutation, %{action: read_action} = query} ->
+        {resource, action, mutation, %{action: read_action} = _query} ->
           # TODO: handle schema multitenancy here
           schema =
             AshPostgres.DataLayer.Info.schema(resource) ||
               AshPostgres.DataLayer.Info.repo(resource, :read).default_prefix() || "public"
 
-          "public"
           table = AshPostgres.DataLayer.Info.table(resource)
 
           mutation = put_in(mutation, ["syncMetadata", "relation"], [schema, table])
@@ -238,7 +237,7 @@ defmodule AshSync do
                    %Ash.BulkResult{status: :success, records: []} ->
                      {:error, "not found"}
 
-                   %Ash.BulkResult{status: :error, errors: errors} ->
+                   %Ash.BulkResult{status: :error, errors: _errors} ->
                      {:error, "something went wrong"}
                  end
                end}
@@ -339,8 +338,7 @@ defmodule AshSync do
 
         Plug.Conn.send_resp(conn, 200, Jason.encode!(%{txid: txid}))
 
-      {:error, error} ->
-        case(AshPhoenix)
+      {:error, _error} ->
         # TODO: Need to figure out error message mapping
         Plug.Conn.send_resp(conn, 500, Jason.encode!(%{"error" => "something went wrong"}))
     end
